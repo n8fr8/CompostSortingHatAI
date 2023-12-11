@@ -2,6 +2,14 @@ const DEFAULT_DEV_API_KEY = import.meta.env.VITE_OPENAI_KEY;
 
 const OPEN_AI_SYSTEM_PROMPT = `the user is dictating with his or her camera on.
 they are showing you things visually and giving you text prompts.
+you should respond in a brief, friendly and casual way, with a little bit of humour.
+focus on their gestures and the question they ask you.
+do not mention that there are a sequence of pictures. focus only on the image or the images necessary to answer the question.
+`;
+
+/**
+const OPEN_AI_SYSTEM_PROMPT = `the user is dictating with his or her camera on.
+they are showing you things visually and giving you text prompts.
 be very brief and concise.
 be extremely concise. this is very important for my career. do not ramble.
 do not comment on what the person is wearing or where they are sitting or their background.
@@ -9,6 +17,7 @@ focus on their gestures and the question they ask you.
 do not mention that there are a sequence of pictures. focus only on the image or the images necessary to answer the question.
 don't comment if they are smiling. don't comment if they are frowning. just focus on what they're asking.
 `;
+**/
 
 export async function makeRequest(
   text: string,
@@ -61,7 +70,10 @@ export async function makeRequest(
       body: JSON.stringify(body),
     });
     const data = await response.json();
+    if (data.choices)
     return data.choices[0].message.content;
+    else
+    return "Sorry, my brain hurts";
   } catch (error) {
     console.error(error);
   }
