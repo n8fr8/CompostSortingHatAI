@@ -6,6 +6,8 @@ import { scaleAndStackImagesAndGetBase64 } from "./imageStacker";
 const IMAGE_STACK_SIZE = 3;
 
 const ELEVENLABS_API_KEY = import.meta.env.VITE_ELEVENLABSAPI_KEY;
+const ELEVENLABS_VOICEID = import.meta.env.VITE_ELEVENLABS_VOICEID;
+
 const getAudio = () => document.getElementById('audio') as HTMLAudioElement
 
 let isDictating = false;
@@ -115,8 +117,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 });
 
 function textToSpeechStream(elevenLabsApiKey: string, text: string) {
-  //const voiceId = 'SOYHLrjzK2X1ezoPC6cr' // Harry
-  const voiceId = '21m00Tcm4TlvDq8ikWAM' //Rachel
+  const voiceId = ELEVENLABS_VOICEID;
 
   return fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`, {
     headers: {
