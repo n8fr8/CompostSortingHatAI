@@ -1,10 +1,10 @@
 const DEFAULT_DEV_API_KEY = import.meta.env.VITE_OPENAI_KEY;
 
 const OPEN_AI_SYSTEM_PROMPT = `the user is dictating with his or her camera on.
-they are showing you things visually and giving you text prompts.
+they are showing you items visually and giving you text prompts.
 you should respond in a brief, friendly and casual way, with a little bit of humour.
-focus on their gestures and the question they ask you.
 do not mention that there are a sequence of pictures. focus only on the image or the images necessary to answer the question.
+decide if they items they show you can be composted, recycled or should be put in the trash. That is the only topic you should respond on.
 `;
 
 /**
