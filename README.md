@@ -1,10 +1,10 @@
-Please see below for a (real) demo. All the code is in [this repo](https://github.com/gregsadetsky/sagittarius)! Cheers.
 
-<script data-goatcounter="https://sagittarius.goatcounter.com/count"
-        async src="//gc.zgo.at/count.js"></script>
+This is built on the fun and amazing demo repo from here: https://github.com/gregsadetsky/sagittarius
 
-<iframe width="100%" height="515" src="https://www.youtube.com/embed/__nL7Vc0OCg?si=tReedrTnNuSBFHXs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+I have added the following:
+- Hook it up to ElevenLabs for better voice
+- Tuned the prompt to work for detecting if an item should be composted, recycled or trashed, with a dash of humour in the response
 
 ---
 
-Made by [Greg Technology](https://greg.technology/).
+Originally demo made by [Greg Technology](https://greg.technology/).
