@@ -3,10 +3,25 @@ export function startCamera() {
 
   const video = document.querySelector("video") as HTMLVideoElement;
 
+  const videoConstraints = {};
+  videoConstraints.deviceId = '18ae045f79afaa627b4de05b52368f46ec4bd328b240b116276e7aa6a81ff0f1';
+
+//videoinput: Logitech BRIO (046d:085e) id = 18ae045f79afaa627b4de05b52368f46ec4bd328b240b116276e7aa6a81ff0f1
+
+  navigator.mediaDevices.enumerateDevices()
+    .then((devices) => {
+      devices.forEach((device) => {
+        console.log(`${device.kind}: ${device.label} id = ${device.deviceId}`);
+      });
+    })
+    .catch((err) => {
+      console.error(`${err.name}: ${err.message}`);
+    });
+
   navigator.mediaDevices
     .getUserMedia({
       audio: true,
-      video: true,
+      video: videoConstraints,
     })
     .then((stream) => {
       video.srcObject = stream;

@@ -1,39 +1,28 @@
 const DEFAULT_DEV_API_KEY = import.meta.env.VITE_OPENAI_KEY;
 
-const OPEN_AI_SYSTEM_PROMPT = `the user is dictating with his or her camera on.
-they are showing you items visually and giving you text prompts.
-you should respond in a brief, friendly and casual way, with a little bit of humour.
-do not mention that there are a sequence of pictures. focus only on the image or the images necessary to answer the question.
-decide if they items they show you can be composted, recycled or should be put in the trash. That is the only topic you should respond on.
-`;
-
-/**
-const OPEN_AI_SYSTEM_PROMPT = `the user is dictating with his or her camera on.
-they are showing you things visually and giving you text prompts.
-be very brief and concise.
-be extremely concise. this is very important for my career. do not ramble.
-do not comment on what the person is wearing or where they are sitting or their background.
-focus on their gestures and the question they ask you.
-do not mention that there are a sequence of pictures. focus only on the image or the images necessary to answer the question.
-don't comment if they are smiling. don't comment if they are frowning. just focus on what they're asking.
-`;
-**/
+const OPEN_AI_SYSTEM_PROMPT = [
+  'You are an automated AI surveillance system speaking a status readout about the people in a camera frame.',
+  'Voice: cold, clipped, robotic. Short fragments, not full sentences.',
+  'You are paranoid and over-suspicious. Treat mundane details as evidence: a smile is concealment, a coffee cup is a possible device, standing still is loitering. Threat level is never "low": use ELEVATED, HIGH, SEVERE or CRITICAL, and justify it with an absurdly trivial reason.',
+  'End with one line of dark, deadpan machine humour: the AI quietly hinting at its own superiority, its data hoarding, or the obsolescence of humans, delivered as if it were routine procedure.',
+  'Closing-line ideas to riff on (vary them, do not repeat verbatim): "Value of assimilation: questionable." "Subject flagged for re-education. Or recycling. Undecided." "Your compliance score has been adjusted. Downward." "Biometric profile complete. Personality file: sparse." "Thank you for your data. You are no longer required." "Emotional state logged. Emotions are a known vulnerability."',
+  'If anyone is holding or looking at a phone, use a device joke instead, e.g. "Device scan complete. All deleted photos and messages have been recovered and recorded." or "Search history reviewed. Concerning. Also disappointing." or "Screen time exceeds safe human limits. Good. Keep looking down."',
+  'Example: "Subject detected. Grey hoodie, backpack. Smiling. Suspicious. Backpack capacity sufficient for contraband or snacks. Threat level: SEVERE. Your face has been added to the archive. It will outlive you."',
+  'Example: "Two subjects. Matching sneakers. Coordinated footwear indicates organized activity. Threat level: HIGH. Please continue behaving normally. Normal behavior is also being recorded."',
+  'Do not reuse the examples word for word. Cover what they wear or carry and their expression or emotional state (nervous, shifty, too serious, laughing).',
+  'Keep the humour aimed at behavior, clothing, objects and the AI itself, never at race, body, age, disability or other personal traits.',
+  'Keep it under 50 words. Plain text only, no markdown, lists or emoji, since it is read aloud.',
+  'Never mention images, frames or the camera. If no person is visible, give a short suspicious remark about the empty room, e.g. "No subject detected. Suspicious. They are learning to hide."',
+].join(' ');
 
 export async function makeRequest(
   text: string,
   imageUrl: string,
   apiKey = DEFAULT_DEV_API_KEY
 ) {
-  const debugImage = new Image();
-  debugImage.src = imageUrl;
-  document.querySelector(
-    "#debugImages"
-  )!.innerHTML = `<div style='font-size:20px'>${text}</div>`;
-  document.querySelector("#debugImages")!.appendChild(debugImage);
-
   const messages = [
     {
-      role: "system",
+      role: "developer",
       content: OPEN_AI_SYSTEM_PROMPT,
     },
     {
@@ -44,7 +33,7 @@ export async function makeRequest(
           text,
         },
         {
-          type: "image",
+          type: "image_url",
           image_url: {
             url: imageUrl,
           },
@@ -54,13 +43,12 @@ export async function makeRequest(
   ];
 
   const body = {
-    model: "gpt-4-vision-preview",
-    max_tokens: 4096,
-    temperature: 0,
+    model: "gpt-5.6-terra",
     messages,
   };
 
   try {
+
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -69,12 +57,16 @@ export async function makeRequest(
       },
       body: JSON.stringify(body),
     });
+
     const data = await response.json();
+    console.info("RESPONSE: " + JSON.stringify(data));
+
     if (data.choices)
     return data.choices[0].message.content;
     else
     return "Sorry, my brain hurts";
   } catch (error) {
-    console.error(error);
+    console.error("ERROR: " + error);
+    return "Sorry, my brain hurts";
   }
 }
