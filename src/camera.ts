@@ -1,43 +1,58 @@
-export function startCamera() {
+// Labels that usually identify a laptop's built-in webcam.
+const BUILT_IN_CAMERA = /laptop|integrated|built-in|internal|facetime|front|back|rear/i;
+
+// Optional override: part of the camera label to prefer, e.g. "BRIO".
+const PREFERRED_CAMERA = import.meta.env.VITE_CAMERA_LABEL as string | undefined;
+
+async function pickCamera(): Promise<string | undefined> {
+  // device labels are only exposed once camera permission has been granted
+  const probe = await navigator.mediaDevices.getUserMedia({ video: true });
+  probe.getTracks().forEach((track) => track.stop());
+
+  const cameras = (await navigator.mediaDevices.enumerateDevices()).filter(
+    (device) => device.kind === "videoinput"
+  );
+  cameras.forEach((camera) =>
+    console.log(`videoinput: ${camera.label} id = ${camera.deviceId}`)
+  );
+
+  const preferred =
+    (PREFERRED_CAMERA &&
+      cameras.find((camera) =>
+        camera.label.toLowerCase().includes(PREFERRED_CAMERA.toLowerCase())
+      )) ||
+    // external cameras are usually enumerated after the built-in one
+    [...cameras].reverse().find((camera) => !BUILT_IN_CAMERA.test(camera.label)) ||
+    cameras[0];
+
+  console.log(`using camera: ${preferred?.label}`);
+  return preferred?.deviceId;
+}
+
+export async function startCamera() {
   // start the camera and pump the video into the #cameraCanvas canvas
 
   const video = document.querySelector("video") as HTMLVideoElement;
 
-  const videoConstraints = {};
-  videoConstraints.deviceId = '18ae045f79afaa627b4de05b52368f46ec4bd328b240b116276e7aa6a81ff0f1';
-
-//videoinput: Logitech BRIO (046d:085e) id = 18ae045f79afaa627b4de05b52368f46ec4bd328b240b116276e7aa6a81ff0f1
-
-  navigator.mediaDevices.enumerateDevices()
-    .then((devices) => {
-      devices.forEach((device) => {
-        console.log(`${device.kind}: ${device.label} id = ${device.deviceId}`);
-      });
-    })
-    .catch((err) => {
-      console.error(`${err.name}: ${err.message}`);
-    });
-
-  navigator.mediaDevices
-    .getUserMedia({
+  try {
+    const deviceId = await pickCamera();
+    const stream = await navigator.mediaDevices.getUserMedia({
       audio: true,
-      video: videoConstraints,
-    })
-    .then((stream) => {
-      video.srcObject = stream;
-      video.play();
-
-      copyToCanvas();
-    })
-    .catch(function (e) {
-      if (
-        confirm(
-          "An error with camera occured:(" + e.name + ") Do you want to reload?"
-        )
-      ) {
-        location.reload();
-      }
+      video: deviceId ? { deviceId: { exact: deviceId } } : true,
     });
+    video.srcObject = stream;
+    video.play();
+
+    copyToCanvas();
+  } catch (e: any) {
+    if (
+      confirm(
+        "An error with camera occured:(" + e.name + ") Do you want to reload?"
+      )
+    ) {
+      location.reload();
+    }
+  }
 }
 
 function copyToCanvas() {

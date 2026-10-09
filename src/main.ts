@@ -124,7 +124,11 @@ let typeOutTimer = null;
 function setScanning(on: boolean) {
   document.body.classList.toggle("scanning", on);
   document.querySelector("#assessmentStatus")!.textContent = on ? "Processing" : "Complete";
+  document.querySelector("#hudAssessment")!.textContent = on ? "in progress" : "complete";
   if (on) {
+    document.querySelector("#hudScanMode")!.textContent = String(randomInt(10000, 99999));
+    document.querySelector("#hudFit")!.textContent = (0.9 + Math.random() * 0.09).toFixed(2);
+    document.querySelector("#hudSpeech")!.textContent = String(randomInt(60, 99));
     scanCount++;
     document.querySelector("#scanCount")!.textContent = String(scanCount);
     document.querySelector("#captureTime")!.textContent = timestamp();
@@ -188,6 +192,20 @@ function addLogEntry(imageUrl: string, text: string) {
   log.prepend(entry);
   while (log.children.length > 50) log.lastChild!.remove();
   document.querySelector("#logCount")!.textContent = String(log.children.length);
+}
+
+function randomInt(min: number, max: number) {
+  return Math.floor(min + Math.random() * (max - min + 1));
+}
+
+// Columns of churning numbers down the left of the HUD, as in the film.
+function updateHudNumbers() {
+  const rows = [];
+  for (let i = 0; i < 8; i++) {
+    if (i === 5) rows.push("");
+    rows.push(`${randomInt(100000, 999999)} ${randomInt(100, 999)} ${String(randomInt(0, 99)).padStart(2, "0")}`);
+  }
+  document.querySelector("#hudNumbers")!.textContent = rows.join("\n");
 }
 
 function updateClock() {
@@ -260,6 +278,8 @@ function stopSurveillance() {
 document.addEventListener("DOMContentLoaded", async function () {
   updateClock();
   setInterval(updateClock, 1000);
+  updateHudNumbers();
+  setInterval(updateHudNumbers, 180);
 
   document.querySelector("#scan")!.addEventListener("click", function () {
     if (!isDictating || openAiCallInTransit) return;
