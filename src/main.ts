@@ -4,7 +4,7 @@ import { startCamera, stopCamera } from "./camera";
 import { scaleAndStackImagesAndGetBase64 } from "./imageStacker";
 
 const IMAGE_STACK_SIZE = 3;
-const SCAN_INTERVAL_MS = 30_000;
+const SCAN_INTERVAL_MS = 15_000;
 const FIRST_SCAN_DELAY_MS = 3_000;
 const MAX_CAPTURES = 24;
 
@@ -64,15 +64,17 @@ function doRequest (message?: string) {
     addCapture(base64);
     const textPrompt = unsentMessages.join(" ");
     unsentMessages = [];
-    makeRequest(textPrompt, base64).then((result) => {
+    makeRequest(textPrompt, base64).then((raw) => {
       // the dictation is catching its own speech!!!!! stop dictation before speaking.
 
       stopDictation();
 
-	console.log(result);
+	console.log(raw);
+      const { classification, text: result } = parseAssessment(raw);
       setScanning(false);
+      showClassification(classification);
       typeOutResponse(result);
-      addLogEntry(base64, result);
+      addLogEntry(base64, result, classification);
 
       const finish = () => {
         openAiCallInTransit = false;
@@ -135,6 +137,32 @@ function setScanning(on: boolean) {
   }
 }
 
+const CLASSIFICATIONS = ["HUMAN", "CYBORG", "ANDROID", "SYNTHETIC"] as const;
+type Classification = (typeof CLASSIFICATIONS)[number];
+const SYNTHETIC_ALERT_MS = 7_000;
+let syntheticAlertTimer = null;
+
+// The model's first line is "CLASSIFICATION: X"; pull it off so it isn't spoken.
+function parseAssessment(raw: string): { classification: Classification; text: string } {
+  const match = raw.match(/^\s*\**\s*CLASSIFICATION\s*:\s*\**\s*([A-Z]+)[^\n]*\n?/i);
+  if (!match) return { classification: "HUMAN", text: raw.trim() };
+  const found = match[1].toUpperCase() as Classification;
+  return {
+    classification: CLASSIFICATIONS.includes(found) ? found : "SYNTHETIC",
+    text: raw.slice(match[0].length).trim(),
+  };
+}
+
+function showClassification(classification: Classification) {
+  document.querySelector("#hudClass")!.textContent = classification.toLowerCase();
+  if (classification === "HUMAN") return;
+
+  document.querySelector("#syntheticType")!.textContent = `Class: ${classification}`;
+  document.body.classList.add("synthetic");
+  syntheticAlertTimer && clearTimeout(syntheticAlertTimer);
+  syntheticAlertTimer = setTimeout(() => document.body.classList.remove("synthetic"), SYNTHETIC_ALERT_MS);
+}
+
 function timestamp() {
   return new Date().toLocaleTimeString([], { hour12: false });
 }
@@ -174,7 +202,7 @@ function addCapture(imageUrl: string) {
   document.querySelector("#captureCount")!.textContent = String(grid.children.length);
 }
 
-function addLogEntry(imageUrl: string, text: string) {
+function addLogEntry(imageUrl: string, text: string, classification: Classification) {
   const log = document.querySelector("#log")!;
   const entry = document.createElement("div");
   entry.className = "entry";
@@ -183,7 +211,8 @@ function addLogEntry(imageUrl: string, text: string) {
   const body = document.createElement("div");
   const meta = document.createElement("div");
   meta.className = "meta";
-  meta.textContent = `${timestamp()} // SUBJECT #${String(scanCount).padStart(4, "0")}`;
+  meta.textContent = `${timestamp()} // SUBJECT #${String(scanCount).padStart(4, "0")} // ${classification}`;
+  if (classification !== "HUMAN") entry.classList.add("synthetic");
   const t = document.createElement("div");
   t.className = "text";
   t.textContent = text;

@@ -268,6 +268,42 @@
       footer span { display: inline-block; padding-left: 100%; animation: ticker 60s linear infinite; }
       @keyframes ticker { to { transform: translateX(-100%); } }
 
+      /* ---------- synthetic life form alert ---------- */
+      .synthetic-alert {
+        position: fixed; inset: 0; z-index: 90;
+        display: none; align-items: center; justify-content: center;
+        pointer-events: none;
+        background: radial-gradient(ellipse at center, rgba(255,26,16,0.25), rgba(60,0,0,0.75));
+        animation: alert-flash 0.5s steps(2) infinite;
+      }
+      body.synthetic .synthetic-alert { display: flex; }
+      .synthetic-box {
+        border: 4px solid var(--alert);
+        background: rgba(10,0,0,0.85);
+        box-shadow: 0 0 40px var(--alert), inset 0 0 30px rgba(255,26,16,0.4);
+        padding: 24px 40px; margin: 0 16px;
+        text-align: center; text-transform: uppercase;
+        animation: alert-shake 0.15s linear infinite;
+      }
+      .synthetic-warn, .synthetic-type {
+        font-family: "Share Tech Mono", ui-monospace, monospace;
+        color: var(--warn); letter-spacing: 0.3em;
+        font-size: clamp(14px, 2vw, 24px);
+      }
+      .synthetic-title {
+        font-family: "Orbitron", sans-serif; font-weight: 800;
+        font-size: clamp(28px, 6vw, 88px); line-height: 1.05;
+        color: var(--alert); letter-spacing: 0.04em;
+        text-shadow: 0 0 12px var(--alert), 0 0 32px var(--alert);
+        margin: 12px 0;
+      }
+      @keyframes alert-flash { 50% { background: radial-gradient(ellipse at center, rgba(255,26,16,0.05), rgba(30,0,0,0.5)); } }
+      @keyframes alert-shake {
+        25% { transform: translate(-2px, 1px); }
+        75% { transform: translate(2px, -1px); }
+      }
+      #log .entry.synthetic .meta { color: var(--alert); font-weight: 700; }
+
       .audio-hint { color: var(--warn); cursor: pointer; }
       .audio-hint[hidden] { display: none; }
 
@@ -285,6 +321,13 @@
     </style>
   </head>
   <body>
+    <div class="synthetic-alert" aria-live="assertive">
+      <div class="synthetic-box">
+        <div class="synthetic-warn">⚠ Warning ⚠</div>
+        <div class="synthetic-title">Synthetic Life Form Detected</div>
+        <div class="synthetic-type" id="syntheticType">Class: unknown</div>
+      </div>
+    </div>
     <div class="app">
       <header>
         <div class="brand">NEXUS<small>// behavioral analysis unit</small></div>
@@ -315,6 +358,7 @@
 <span id="hudNumbers"></span></div>
             <div class="overlay-text tr">Scan mode <span id="hudScanMode">43894</span>
 Size assessment<span class="gap"></span>Assessment <span id="hudAssessment">pending</span>
+Lifeform <span id="hudClass">unknown</span>
 Fit probability <span id="hudFit">0.00</span><span class="gap"></span>Reset to acquisition
 Mode speech level <span id="hudSpeech">78</span><span class="gap"></span>Priority override
 Defense systems set
